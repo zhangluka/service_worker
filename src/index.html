@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>前端版本更新通知系统</title>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --dark-color: #2c3e50;
+      --light-color: #ecf0f1;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      margin: 30px 0;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(to right, #3498db, #2ecc71);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      max-width: 1200px;
+      margin: 20px auto;
+    }
+
+    .card {
+      background: rgba(44, 62, 80, 0.85);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      padding: 25px;
+      width: 100%;
+      max-width: 550px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card h2 {
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h2 i {
+      font-size: 1.8rem;
+    }
+
+    .info-section {
+      margin-bottom: 25px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .value {
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background-color: rgba(46, 204, 113, 0.2);
+      color: var(--success-color);
+    }
+
+    .status-inactive {
+      background-color: rgba(231, 76, 60, 0.2);
+      color: var(--danger-color);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .primary-btn {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .primary-btn:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .secondary-btn {
+      background-color: var(--dark-color);
+      color: var(--light-color);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .secondary-btn:hover {
+      background-color: #34495e;
+      transform: translateY(-2px);
+    }
+
+    .success-btn {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .warning-btn {
+      background-color: var(--warning-color);
+      color: white;
+    }
+
+    .update-toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(44, 62, 80, 0.95);
+      border-left: 5px solid var(--warning-color);
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      transform: translateX(120%);
+      transition: transform 0.5s ease;
+    }
+
+    .update-toast.visible {
+      transform: translateX(0);
+    }
+
+    .toast-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--warning-color);
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .toast-content {
+      line-height: 1.6;
+    }
+
+    .toast-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .version-history {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .version-item {
+      padding: 12px 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .version-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .version-date {
+      color: #95a5a6;
+      font-size: 0.9rem;
+    }
+
+    .version-changes {
+      padding-left: 20px;
+    }
+
+    .version-changes li {
+      margin-bottom: 5px;
+    }
+
+    .explanation {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(44, 62, 80, 0.7);
+      border-radius: 12px;
+      max-width: 1000px;
+    }
+
+    .explanation h3 {
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+
+    .explanation p {
+      margin-bottom: 15px;
+      line-height: 1.7;
+    }
+
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .feature-card {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 20px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .feature-card h4 {
+      color: var(--success-color);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 20px;
+      color: rgba(255, 255, 255, 0.7);
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>前端版本更新通知系统</h1>
+    <p class="subtitle">使用Service Worker和版本文件比对技术实现可靠的前端更新检测与通知</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2><i>🛠️</i> 当前版本信息</h2>
+
+      <div class="info-section">
+        <div class="info-item">
+          <span class="label">当前版本号</span>
+          <span class="value" id="current-version">1.2.0</span>
+        </div>
+        <div class="info-item">
+          <span class="label">构建时间</span>
+          <span class="value" id="build-time">2023-10-15 14:30:45</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Service Worker状态</span>
+          <span class="value">
+            <span id="sw-status" class="status-badge status-active">已激活</span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">最后检测时间</span>
+          <span class="value" id="last-check">2023-10-15 14:35:22</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="primary-btn" id="check-update-btn">
+          <i>🔄</i> 立即检查更新
+        </button>
+        <button class="secondary-btn" id="simulate-update-btn">
+          <i>🚀</i> 模拟新版本发布
+        </button>
+      </div>
+
+      <div class="version-history">
+        <h3>最近更新</h3>
+        <div class="version-item">
+          <div class="version-header">
+            <span>v1.2.0</span>
+            <span class="version-date">2023-10-15</span>
+          </div>
+          <ul class="version-changes">
+            <li>新增版本更新通知系统</li>
+            <li>优化Service Worker更新检测逻辑</li>
+            <li>修复页面加载性能问题</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i>⚙️</i> 更新检测机制</h2>
+
+      <div class="info-section">
+        <div class="info-item">
+          <span class="label">检测方式</span>
+          <span class="value">双保险策略</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Service Worker</span>
+          <span class="value">
+            <span class="status-badge status-active">已启用</span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">版本文件比对</span>
+          <span class="value">
+            <span class="status-badge status-active">已启用</span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">自动检测频率</span>
+          <span class="value">每5分钟</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="warning-btn" id="force-update-btn">
+          <i>⚠️</i> 触发强制更新
+        </button>
+        <button class="success-btn" id="register-sw-btn">
+          <i>🔒</i> 注册Service Worker
+        </button>
+      </div>
+
+      <div class="version-history">
+        <h3>待发布版本</h3>
+        <div class="version-item">
+          <div class="version-header">
+            <span>v1.3.0</span>
+            <span class="version-date">即将发布</span>
+          </div>
+          <ul class="version-changes">
+            <li>新增暗黑模式支持</li>
+            <li>优化更新通知UI</li>
+            <li>增加更新日志查看功能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="update-toast" id="update-toast">
+    <div class="toast-header">
+      <i>🚀</i>
+      <span>新版本可用！</span>
+    </div>
+    <div class="toast-content">
+      <p>版本 <strong id="new-version">1.3.0</strong> 已发布，包含多项功能改进和性能优化。</p>
+      <p>请更新以获取最佳体验！</p>
+    </div>
+    <div class="toast-actions">
+      <button class="primary-btn" id="update-now-btn">立即更新</button>
+      <button class="secondary-btn" id="later-btn">稍后提醒</button>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <h3>实现原理说明</h3>
+    <p>此系统采用双保险策略确保及时检测到前端更新：</p>
+
+    <div class="features">
+      <div class="feature-card">
+        <h4><i>🔧</i> Service Worker检测</h4>
+        <p>通过监听Service Worker的<code>updatefound</code>和<code>statechange</code>事件，在后台静默检测更新。</p>
+      </div>
+      <div class="feature-card">
+        <h4><i>📄</i> 版本文件比对</h4>
+        <p>定期请求<code>version.json</code>文件，与当前版本号比对，作为Service Worker的补充检测机制。</p>
+      </div>
+      <div class="feature-card">
+        <h4><i>🔔</i> 用户通知</h4>
+        <p>检测到更新后，通过非阻塞式Toast通知用户，并提供立即更新和稍后提醒选项。</p>
+      </div>
+      <div class="feature-card">
+        <h4><i>⚡</i> 更新策略</h4>
+        <p>用户确认后强制刷新页面，确保加载最新资源。忽略更新则设置临时标记，避免频繁打扰。</p>
+      </div>
+    </div>
+
+    <p><strong>优势</strong>：双检测机制确保可靠性，优雅的UI提供良好用户体验，完全前端实现无需后端配合。</p>
+  </div>
+
+  <footer>
+    <p>前端版本更新通知系统 | 使用Service Worker和版本文件比对技术</p>
+    <p>© 2023 前端工程解决方案</p>
+  </footer>
+
+  <script>
+    // 当前应用版本信息
+    const APP_VERSION = '1.2.0';
+    const BUILD_TIME = '2023-10-15 14:30:45';
+
+    // DOM元素
+    const updateToast = document.getElementById('update-toast');
+    const updateNowBtn = document.getElementById('update-now-btn');
+    const laterBtn = document.getElementById('later-btn');
+    const checkUpdateBtn = document.getElementById('check-update-btn');
+    const simulateUpdateBtn = document.getElementById('simulate-update-btn');
+    const forceUpdateBtn = document.getElementById('force-update-btn');
+    const registerSwBtn = document.getElementById('register-sw-btn');
+    const newVersionEl = document.getElementById('new-version');
+
+    // 初始化页面
+    document.getElementById('current-version').textContent = APP_VERSION;
+    document.getElementById('build-time').textContent = BUILD_TIME;
+    updateLastCheckTime();
+
+    // 显示更新通知
+    function showUpdateNotification(version = '1.3.0', isForce = false) {
+      newVersionEl.textContent = version;
+
+      // 如果是强制更新，隐藏"稍后提醒"按钮
+      if (isForce) {
+        laterBtn.style.display = 'none';
+      } else {
+        laterBtn.style.display = 'block';
+      }
+
+      updateToast.classList.add('visible');
+    }
+
+    // 隐藏更新通知
+    function hideUpdateNotification() {
+      updateToast.classList.remove('visible');
+    }
+
+    // 更新最后检测时间
+    function updateLastCheckTime() {
+      const now = new Date();
+      const formattedTime = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      document.getElementById('last-check').textContent = formattedTime;
+    }
+
+    // 模拟检查版本更新
+    function checkForUpdates() {
+      // 模拟网络请求延迟
+      setTimeout(() => {
+        // 随机决定是否发现新版本 (70%概率)
+        if (Math.random() > 0.3) {
+          showUpdateNotification('1.3.' + Math.floor(Math.random() * 5));
+        } else {
+          alert('✅ 当前已是最新版本！');
+        }
+        updateLastCheckTime();
+      }, 800);
+    }
+
+    // 事件监听
+    updateNowBtn.addEventListener('click', () => {
+      alert('正在更新应用...');
+      hideUpdateNotification();
+      // 实际项目中应使用 location.reload(true)
+      setTimeout(() => {
+        alert('更新完成！应用已刷新到最新版本。');
+      }, 1000);
+    });
+
+    laterBtn.addEventListener('click', () => {
+      hideUpdateNotification();
+      alert('您选择了稍后更新。我们将在1小时后再次提醒您。');
+    });
+
+    checkUpdateBtn.addEventListener('click', checkForUpdates);
+
+    simulateUpdateBtn.addEventListener('click', () => {
+      showUpdateNotification('1.3.' + Math.floor(Math.random() * 5));
+    });
+
+    forceUpdateBtn.addEventListener('click', () => {
+      showUpdateNotification('1.4.0', true);
+    });
+
+    registerSwBtn.addEventListener('click', () => {
+      alert('Service Worker 已注册！');
+      document.getElementById('sw-status').textContent = '已激活';
+      document.getElementById('sw-status').className = 'status-badge status-active';
+    });
+
+    // Service Worker 注册和更新检测
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./index.js').then(reg => {
+        console.log('Service Worker 注册成功:', reg);
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // 检测到新版本
+              showUpdateNotification('1.3.0');
+            }
+          });
+        });
+      }).catch(err => {
+        console.log('Service Worker 注册失败:', err);
+      });
+
+      // 定期检查更新 (每5分钟)
+      setInterval(() => {
+        navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg) reg.update();
+        });
+        updateLastCheckTime();
+      }, 5 * 60 * 1000);
+    } else {
+      document.getElementById('sw-status').textContent = '浏览器不支持';
+      document.getElementById('sw-status').className = 'status-badge status-inactive';
+    }
+
+    // 版本文件比对检查
+    function checkVersionFile() {
+      fetch('./version.json?t=' + Date.now())
+        .then(response => response.json())
+        .then(remote => {
+          if (remote.version !== APP_VERSION) {
+            showUpdateNotification(remote.version);
+          }
+        })
+        .catch(err => console.error('版本检查失败:', err));
+    }
+
+    // 启动版本文件轮询检查 (每5分钟)
+    setInterval(checkVersionFile, 5 * 60 * 1000);
+    window.addEventListener('load', checkVersionFile);
+  </script>
+</body>
+
+</html>
