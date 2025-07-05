@@ -570,7 +570,7 @@
 
     // Service Worker 注册和更新检测
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./index.js').then(reg => {
+      navigator.serviceWorker.register('./sw.js').then(reg => {
         console.log('Service Worker 注册成功:', reg);
 
         reg.addEventListener('updatefound', () => {
